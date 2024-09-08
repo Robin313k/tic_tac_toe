@@ -97,12 +97,18 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
         _ => help = String::new(),
     }
 
+    let mut already_taken = false;
+
     // Loop to prevent false input from crashing the game
     loop {
         // Display the game field
         display_game(array);
         println!("");
         println!("Player {} {help} is now playing!", player);
+
+        if already_taken {
+            println!("Slot already taken, choose another one.");
+        }
 
         // Prompt for input
         println!("Input the field you want to claim (1-9):");
@@ -137,7 +143,7 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
             array[y as usize][x as usize] = player;
             break;  // Exit the loop when a valid move is made
         } else {
-            println!("Slot already taken, choose another one.");
+            already_taken = true;
         }
     }
 }
