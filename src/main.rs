@@ -15,12 +15,12 @@ fn main() {
     loop {
         // if else statement is responsible for switching out players
         if player_one_beginns {
-            display_game(&field);
+            display_game(&field, false);
             change_slot(&mut field, player_one);
             check_for_win(&mut field, player_one);
             player_one_beginns = false;
         } else {
-            display_game(&field);
+            display_game(&field, false);
             change_slot(&mut field, player_two);
             check_for_win(&mut field, player_two);
             player_one_beginns = true;
@@ -31,18 +31,13 @@ fn main() {
         }
     }
     // show final result
-    display_game(&field);
+    display_game(&field, true);
     println!("");
     println!("Draw!");
-
-
-
-
-
 }
 
 // display gamefield in a more appealing way
-fn display_game(array: &[[i32; 3]; 3]) {
+fn display_game(array: &[[i32; 3]; 3], display_outcome: bool) {
     // vars for empty, player one and player two
     let x = String::from("[X]");
     let o = String::from("[O]");
@@ -51,11 +46,18 @@ fn display_game(array: &[[i32; 3]; 3]) {
     clear().expect("failed to clear screen");
     // starts process of printing gamefield
     let mut counter = 0;
+
     for i in 0..3 {
         for j in 0..3 {
             counter = counter + 1;
             match array[i][j] {
-                0 => print!("[{}]", counter),
+                0 => {
+                    if display_outcome {
+                        print!("[ ]")
+                    } else {
+                        print!("[{}]", counter)
+                    }
+                }
                 1 => print!("{}", &x),
                 2 => print!("{}", &o),
                 _ => continue, // Default case for unexpected values
@@ -102,7 +104,7 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
     // Loop to prevent false input from crashing the game
     loop {
         // Display the game field
-        display_game(array);
+        display_game(array, false);
         println!("");
         println!("Player {} {help} is now playing!", player);
 
@@ -112,12 +114,14 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
 
         // Prompt for input
         println!("Input the field you want to claim (1-9):");
-        input.clear();  // Clear input from previous loop iteration
-        io::stdin().read_line(&mut input).expect("Failed to read line");
+        input.clear(); // Clear input from previous loop iteration
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read line");
 
         // Try to parse the input as an integer between 1 and 9
         let input: u8 = match input.trim().parse() {
-            Ok(num) if num >= 1 && num <= 9 => num,  // Only accept input between 1 and 9
+            Ok(num) if num >= 1 && num <= 9 => num, // Only accept input between 1 and 9
             _ => {
                 println!("Invalid input, please enter a number between 1 and 9.");
                 continue;
@@ -141,7 +145,7 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
         // Check if the slot is empty and within bounds
         if array[y as usize][x as usize] == 0 {
             array[y as usize][x as usize] = player;
-            break;  // Exit the loop when a valid move is made
+            break; // Exit the loop when a valid move is made
         } else {
             already_taken = true;
         }
@@ -150,9 +154,9 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
 
 // checks if given player has won
 fn check_for_win(array: &mut [[i32; 3]; 3], player: i32) {
-
     let help;
 
+    // vars to check if a player has won
     match player {
         1 => help = String::from("[X]"),
         2 => help = String::from("[O]"),
@@ -162,7 +166,7 @@ fn check_for_win(array: &mut [[i32; 3]; 3], player: i32) {
     // Check horizontal wins
     for hor in 0..3 {
         if array[hor][0] == player && array[hor][1] == player && array[hor][2] == player {
-            display_game(array);
+            display_game(array, true);
             println!("");
             println!("Player {} {help} wins!", player);
             process::exit(0);
@@ -172,7 +176,7 @@ fn check_for_win(array: &mut [[i32; 3]; 3], player: i32) {
     // Check vertical wins
     for vert in 0..3 {
         if array[0][vert] == player && array[1][vert] == player && array[2][vert] == player {
-            display_game(array);
+            display_game(array, true);
             println!("");
             println!("Player {} {help} wins!", player);
             process::exit(0);
@@ -183,9 +187,10 @@ fn check_for_win(array: &mut [[i32; 3]; 3], player: i32) {
     if (array[0][0] == player && array[1][1] == player && array[2][2] == player)
         || (array[0][2] == player && array[1][1] == player && array[2][0] == player)
     {
-        display_game(array);
+        display_game(array, true);
         println!("");
         println!("Player {} {help} wins!", player);
         process::exit(0);
     }
 }
+
