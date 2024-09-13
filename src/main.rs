@@ -40,6 +40,8 @@ fn main() -> std::io::Result<()> {
             }
             player_one_beginns = true;
         }
+        check_for_win(&mut field, player_one)
+        check_for_win(&mut field, player_two)
         // check if any slots are unclaimed, if so draw happens, bc no one won
         if check_for_zero(&field) == false {
             break;
