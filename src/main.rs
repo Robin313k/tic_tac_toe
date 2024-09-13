@@ -1,7 +1,18 @@
+use colored::*;
 use clearscreen::clear;
-use std::{io, process};
+use std::io;
+use std::io::{stdout};
+use crossterm::{
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen},
+    ExecutableCommand,
+};
 
-fn main() {
+fn main() -> std::io::Result<()> {
+    let mut stdout = stdout();
+
+    // Enter the alternate screen
+    stdout.execute(EnterAlternateScreen)?;
+    
     // var for gamefield
     let mut field = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
 
@@ -15,14 +26,18 @@ fn main() {
     loop {
         // if else statement is responsible for switching out players
         if player_one_beginns {
-            display_game(&field, false);
+            display_game(&field);
             change_slot(&mut field, player_one);
-            check_for_win(&mut field, player_one);
+            if check_for_win(&mut field, player_one) == true {
+                break;
+            }
             player_one_beginns = false;
         } else {
-            display_game(&field, false);
+            display_game(&field);
             change_slot(&mut field, player_two);
-            check_for_win(&mut field, player_two);
+            if check_for_win(&mut field, player_two) == true {
+                break;
+            }
             player_one_beginns = true;
         }
         // check if any slots are unclaimed, if so draw happens, bc no one won
@@ -30,36 +45,39 @@ fn main() {
             break;
         }
     }
-    // show final result
-    display_game(&field, true);
-    println!("");
-    println!("Draw!");
+    if check_for_zero(&field) == false {
+        // show final result
+        display_game(&field);
+        println!("");
+        println!("Draw!");
+    }
+
+    let mut wait = String::new();
+    println!("Press enter to leave.");
+    io::stdin().read_line(&mut wait).expect("Failed to read line");
+
+    stdout.execute(LeaveAlternateScreen)?;
+
+    Ok(())
 }
 
 // display gamefield in a more appealing way
-fn display_game(array: &[[i32; 3]; 3], display_outcome: bool) {
+fn display_game(array: &[[i32; 3]; 3]) {
     // vars for empty, player one and player two
-    let x = String::from("[X]");
-    let o = String::from("[O]");
+    let x = String::from("X");
+    let o = String::from("O");
 
     // clear screen so player wont need to scroll
     clear().expect("failed to clear screen");
     // starts process of printing gamefield
     let mut counter = 0;
-
     for i in 0..3 {
         for j in 0..3 {
             counter = counter + 1;
             match array[i][j] {
-                0 => {
-                    if display_outcome {
-                        print!("[ ]")
-                    } else {
-                        print!("[{}]", counter)
-                    }
-                }
-                1 => print!("{}", &x),
-                2 => print!("{}", &o),
+                0 => print!("[{}]", counter),
+                1 => print!("[{}]", &x.red()),
+                2 => print!("[{}]", &o.blue()),
                 _ => continue, // Default case for unexpected values
             };
         }
@@ -104,7 +122,7 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
     // Loop to prevent false input from crashing the game
     loop {
         // Display the game field
-        display_game(array, false);
+        display_game(array);
         println!("");
         println!("Player {} {help} is now playing!", player);
 
@@ -114,14 +132,11 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
 
         // Prompt for input
         println!("Input the field you want to claim (1-9):");
-        input.clear(); // Clear input from previous loop iteration
-        io::stdin()
-            .read_line(&mut input)
-            .expect("Failed to read line");
+        io::stdin().read_line(&mut input).expect("Failed to read line");
 
         // Try to parse the input as an integer between 1 and 9
         let input: u8 = match input.trim().parse() {
-            Ok(num) if num >= 1 && num <= 9 => num, // Only accept input between 1 and 9
+            Ok(num) if num >= 1 && num <= 9 => num,  // Only accept input between 1 and 9
             _ => {
                 println!("Invalid input, please enter a number between 1 and 9.");
                 continue;
@@ -145,7 +160,7 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
         // Check if the slot is empty and within bounds
         if array[y as usize][x as usize] == 0 {
             array[y as usize][x as usize] = player;
-            break; // Exit the loop when a valid move is made
+            break;  // Exit the loop when a valid move is made
         } else {
             already_taken = true;
         }
@@ -153,10 +168,10 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
 }
 
 // checks if given player has won
-fn check_for_win(array: &mut [[i32; 3]; 3], player: i32) {
+fn check_for_win(array: &mut [[i32; 3]; 3], player: i32) -> bool {
+
     let help;
 
-    // vars to check if a player has won
     match player {
         1 => help = String::from("[X]"),
         2 => help = String::from("[O]"),
@@ -166,20 +181,20 @@ fn check_for_win(array: &mut [[i32; 3]; 3], player: i32) {
     // Check horizontal wins
     for hor in 0..3 {
         if array[hor][0] == player && array[hor][1] == player && array[hor][2] == player {
-            display_game(array, true);
+            display_game(array);
             println!("");
             println!("Player {} {help} wins!", player);
-            process::exit(0);
+            return true;
         }
     }
 
     // Check vertical wins
     for vert in 0..3 {
         if array[0][vert] == player && array[1][vert] == player && array[2][vert] == player {
-            display_game(array, true);
+            display_game(array);
             println!("");
             println!("Player {} {help} wins!", player);
-            process::exit(0);
+            return true;
         }
     }
 
@@ -187,10 +202,11 @@ fn check_for_win(array: &mut [[i32; 3]; 3], player: i32) {
     if (array[0][0] == player && array[1][1] == player && array[2][2] == player)
         || (array[0][2] == player && array[1][1] == player && array[2][0] == player)
     {
-        display_game(array, true);
+        display_game(array);
         println!("");
         println!("Player {} {help} wins!", player);
-        process::exit(0);
+        return true;
+    } else {
+        return false;
     }
 }
-
