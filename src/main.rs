@@ -110,8 +110,8 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
     let help;
 
     match player {
-        1 => help = String::from("[X]"),
-        2 => help = String::from("[O]"),
+        1 => help = String::from("X"),
+        2 => help = String::from("O"),
         _ => help = String::new(),
     }
 
@@ -125,7 +125,11 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
         // Display the game field
         display_game(array);
         println!("");
-        println!("Player {} {help} is now playing!", player);
+        if player == 1 {
+            println!("Player {} [{}] is now playing!", player, help.red());
+        } else {
+            println!("Player {} [{}] is now playing!", player, help.blue());
+        }
 
         // check if slot is claimed or not
         if already_taken {
@@ -169,46 +173,52 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
     }
 }
 
+
 // checks if given player has won
 fn check_for_win(array: &mut [[i32; 3]; 3], player: i32) -> bool {
 
     let help;
 
     match player {
-        1 => help = String::from("[X]"),
-        2 => help = String::from("[O]"),
+        1 => help = String::from("X"),
+        2 => help = String::from("O"),
         _ => help = String::new(),
     }
+
+    let mut someone_won = false;
 
     // Check horizontal wins
     for hor in 0..3 {
         if array[hor][0] == player && array[hor][1] == player && array[hor][2] == player {
-            display_game(array);
-            println!("");
-            println!("Player {} {help} wins!", player);
-            return true;
+            someone_won = true;
         }
     }
 
     // Check vertical wins
     for vert in 0..3 {
         if array[0][vert] == player && array[1][vert] == player && array[2][vert] == player {
-            display_game(array);
-            println!("");
-            println!("Player {} {help} wins!", player);
-            return true;
+            someone_won = true;
         }
     }
 
     // Check diagonal wins
     if (array[0][0] == player && array[1][1] == player && array[2][2] == player)
-        || (array[0][2] == player && array[1][1] == player && array[2][0] == player)
-    {
+        || (array[0][2] == player && array[1][1] == player && array[2][0] == player) {
+        someone_won = true;
+    }
+
+    if someone_won {
         display_game(array);
         println!("");
-        println!("Player {} {help} wins!", player);
+        if player == 1 {
+            println!("Player {} [{}] wins!", player, help.red());
+        } else {
+            println!("Player {} [{}] wins!", player, help.blue());
+        }
         return true;
     } else {
         return false;
     }
+
 }
+
