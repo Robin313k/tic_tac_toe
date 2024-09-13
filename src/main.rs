@@ -26,14 +26,14 @@ fn main() -> std::io::Result<()> {
     loop {
         // if else statement is responsible for switching out players
         if player_one_beginns {
-            display_game(&field);
+            display_game(&field, false);
             change_slot(&mut field, player_one);
             if check_for_win(&mut field, player_one) == true {
                 break;
             }
             player_one_beginns = false;
         } else {
-            display_game(&field);
+            display_game(&field, false);
             change_slot(&mut field, player_two);
             if check_for_win(&mut field, player_two) == true {
                 break;
@@ -49,7 +49,7 @@ fn main() -> std::io::Result<()> {
     }
     if check_for_zero(&field) == false {
         // show final result
-        display_game(&field);
+        display_game(&field, true);
         println!("");
         println!("Draw!");
     }
@@ -64,7 +64,7 @@ fn main() -> std::io::Result<()> {
 }
 
 // display gamefield in a more appealing way
-fn display_game(array: &[[i32; 3]; 3]) {
+fn display_game(array: &[[i32; 3]; 3], display_outcome: bool) {
     // vars for empty, player one and player two
     let x = String::from("X");
     let o = String::from("O");
@@ -77,7 +77,13 @@ fn display_game(array: &[[i32; 3]; 3]) {
         for j in 0..3 {
             counter = counter + 1;
             match array[i][j] {
-                0 => print!("[{}]", counter),
+                0 => {
+                    if display_outcome {
+                        print!("[ ]")
+                    } else {
+                        print!("[{}]", counter)
+                    }
+                }
                 1 => print!("[{}]", &x.red()),
                 2 => print!("[{}]", &o.blue()),
                 _ => continue, // Default case for unexpected values
@@ -125,7 +131,7 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
         let mut input = String::new();
 
         // Display the game field
-        display_game(array);
+        display_game(array, false);
         println!("");
         if player == 1 {
             println!("Player {} [{}] is now playing!", player, help.red());
@@ -210,7 +216,7 @@ fn check_for_win(array: &mut [[i32; 3]; 3], player: i32) -> bool {
     }
 
     if someone_won {
-        display_game(array);
+        display_game(array, true);
         println!("");
         if player == 1 {
             println!("Player {} [{}] wins!", player, help.red());
