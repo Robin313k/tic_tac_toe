@@ -107,8 +107,6 @@ fn check_for_zero(array: &[[i32; 3]; 3]) -> bool {
 
 // change slot from empty to claimed
 fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
-    let mut input = String::new();
-
     let help;
 
     match player {
@@ -121,11 +119,15 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
 
     // Loop to prevent false input from crashing the game
     loop {
+        // shadow input every iteration so game does not crash
+        let mut input = String::new();
+
         // Display the game field
         display_game(array);
         println!("");
         println!("Player {} {help} is now playing!", player);
 
+        // check if slot is claimed or not
         if already_taken {
             println!("Slot already taken, choose another one.");
         }
@@ -134,7 +136,7 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
         println!("Input the field you want to claim (1-9):");
         io::stdin().read_line(&mut input).expect("Failed to read line");
 
-        // Try to parse the input as an integer between 1 and 9
+        // transfer input from String to unsigned 8 bit int
         let input: u8 = match input.trim().parse() {
             Ok(num) if num >= 1 && num <= 9 => num,  // Only accept input between 1 and 9
             _ => {
@@ -142,7 +144,7 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
                 continue;
             }
         };
-
+        
         // Map the input to (x, y) coordinates
         let (x, y) = match input {
             1 => (0, 0),
