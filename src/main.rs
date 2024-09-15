@@ -40,18 +40,19 @@ fn main() -> std::io::Result<()> {
             }
             player_one_beginns = true;
         }
-        check_for_win(&mut field, player_one);
-        check_for_win(&mut field, player_two);
         // check if any slots are unclaimed, if so draw happens, bc no one won
         if check_for_zero(&field) == false {
             break;
         }
     }
+
     if check_for_zero(&field) == false {
-        // show final result
-        display_game(&field, true);
-        println!("");
-        println!("Draw!");
+            if check_for_win(&mut field, player_one) != true {
+            // show final result
+            display_game(&field, true);
+            println!("");
+            println!("Draw!");
+        }
     }
 
     let mut wait = String::new();
@@ -152,7 +153,6 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
         let input: u8 = match input.trim().parse() {
             Ok(num) if num >= 1 && num <= 9 => num,  // Only accept input between 1 and 9
             _ => {
-                println!("Invalid input, please enter a number between 1 and 9.");
                 continue;
             }
         };
@@ -229,4 +229,3 @@ fn check_for_win(array: &mut [[i32; 3]; 3], player: i32) -> bool {
     }
 
 }
-
