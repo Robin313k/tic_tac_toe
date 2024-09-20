@@ -1,18 +1,18 @@
-use colored::*;
 use clearscreen::clear;
-use std::io;
-use std::io::{stdout};
+use colored::*;
 use crossterm::{
     terminal::{EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
+use std::io::stdout;
+use std::{io, process};
 
 fn main() -> std::io::Result<()> {
     let mut stdout = stdout();
 
     // Enter the alternate screen
     stdout.execute(EnterAlternateScreen)?;
-    
+
     // var for gamefield
     let mut field = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
 
@@ -40,24 +40,25 @@ fn main() -> std::io::Result<()> {
             }
             player_one_beginns = true;
         }
+        check_for_win(&mut field, player_one);
+        check_for_win(&mut field, player_two);
         // check if any slots are unclaimed, if so draw happens, bc no one won
         if check_for_zero(&field) == false {
             break;
         }
     }
-
     if check_for_zero(&field) == false {
-            if check_for_win(&mut field, player_one) != true {
-            // show final result
-            display_game(&field, true);
-            println!("");
-            println!("Draw!");
-        }
+        // show final result
+        display_game(&field, true);
+        println!("");
+        println!("Draw!");
     }
 
     let mut wait = String::new();
     println!("Press enter to leave.");
-    io::stdin().read_line(&mut wait).expect("Failed to read line");
+    io::stdin()
+        .read_line(&mut wait)
+        .expect("Failed to read line");
 
     stdout.execute(LeaveAlternateScreen)?;
 
@@ -134,6 +135,7 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
         // Display the game field
         display_game(array, false);
         println!("");
+        println!("Enter q to quit");
         if player == 1 {
             println!("Player {} [{}] is now playing!", player, help.red());
         } else {
@@ -147,16 +149,34 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
 
         // Prompt for input
         println!("Input the field you want to claim (1-9):");
-        io::stdin().read_line(&mut input).expect("Failed to read line");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read line");
+
+        // Code to quit game
+        if input.trim() == "q" {
+            println!("Are you sure you want to quit? [y/N]");
+
+            let mut exit_question = String::new();
+            io::stdin()
+                .read_line(&mut exit_question)
+                .expect("Failed to read line");
+
+            //  second question to disable accidental quitting
+            if exit_question.trim() == "Y" || exit_question.trim() == "y" {
+                process::exit(0);
+            }
+        }
 
         // transfer input from String to unsigned 8 bit int
         let input: u8 = match input.trim().parse() {
-            Ok(num) if num >= 1 && num <= 9 => num,  // Only accept input between 1 and 9
+            Ok(num) if num >= 1 && num <= 9 => num, // Only accept input between 1 and 9
             _ => {
+                println!("Invalid input, please enter a number between 1 and 9.");
                 continue;
             }
         };
-        
+
         // Map the input to (x, y) coordinates
         let (x, y) = match input {
             1 => (0, 0),
@@ -174,17 +194,15 @@ fn change_slot(array: &mut [[i32; 3]; 3], player: i32) {
         // Check if the slot is empty and within bounds
         if array[y as usize][x as usize] == 0 {
             array[y as usize][x as usize] = player;
-            break;  // Exit the loop when a valid move is made
+            break; // Exit the loop when a valid move is made
         } else {
             already_taken = true;
         }
     }
 }
 
-
 // checks if given player has won
 fn check_for_win(array: &mut [[i32; 3]; 3], player: i32) -> bool {
-
     let help;
 
     match player {
@@ -211,7 +229,8 @@ fn check_for_win(array: &mut [[i32; 3]; 3], player: i32) -> bool {
 
     // Check diagonal wins
     if (array[0][0] == player && array[1][1] == player && array[2][2] == player)
-        || (array[0][2] == player && array[1][1] == player && array[2][0] == player) {
+        || (array[0][2] == player && array[1][1] == player && array[2][0] == player)
+    {
         someone_won = true;
     }
 
@@ -227,5 +246,4 @@ fn check_for_win(array: &mut [[i32; 3]; 3], player: i32) -> bool {
     } else {
         return false;
     }
-
 }
